@@ -10,7 +10,11 @@ var phoneUtil = require('google-libphonenumber').PhoneNumberUtil.getInstance();
 let fileUpload = require('express-fileupload');
 var bodyParser = require('body-parser');
 let multer = require('multer');
+let upload = new multer();
 let fs = require('fs');
+let WordExtractor = require("word-extractor");
+let extractor = new WordExtractor();
+let textract = require('textract');
 /*
 Express dependencies for node server
 */
@@ -55,14 +59,33 @@ app.get(uri, function (req, res) {
   res.send(phoneNumberSend);
 });
 
-app.post(postUri, function(req, res) {
-    
+app.post(postUri, upload.single('file'), function(req, res) {  
+  var extention = req.file.originalname.split('.').pop().toString();
+
+  if(extention == "doc"){
+    var pString = req.file.path;
+    let extracted = extractor.extract(pString);    
+    extracted.then(function(doc) {
+      console.log(doc.getBody());
+      res.send(doc.getBody());
+    });
+  }
+  else if(extention == "docx"){
+    var pString = req.file.path;
+    textract.fromFileWithPath(req.file.originalname, function( error, text ) {
+      var string = text.toString('ascii')
+      let result = new Buffer(string,'base64').toString('ascii');
+      console.log(result);
+      res.send(result);
+    })
+  }
+  else{
     fs.readFile("numbers.txt", "utf8", function(error, data) {
         let text= new Buffer(data,'base64').toString('ascii');
         console.log(text);
         res.send(text);
       });
-    
+  }
 });
 
 app.listen(3000, function () {
