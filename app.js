@@ -26,10 +26,12 @@ let urlencodedParser = bodyParser.urlencoded({ extended: false });
 Helper function to parse the actual phone number from a string
 */
 function parsePhoneNumber(param){
-    let lastSpace = param.lastIndexOf(" ");
-      let myNum =  param.slice(lastSpace);
-      return myNum;
-    //console.log(myNum);
+    var myNum = [];
+    for (var i = 0; i < param.length; i++){
+      let lastSpace = param[i].indexOf(":");
+      myNum[i] = param[i].slice(lastSpace);
+    }
+    return myNum;
   }
 
  
@@ -45,13 +47,17 @@ app.get(uri, function (req, res) {
       console.log(inputData);
       if else statement to see if params are nothing or not
   }*/
+  var strArr = [];
+  strArr = inputData.split(',');
 
-  let phoneNumber = parsePhoneNumber(inputData);
-  let sendThisNumber = req.params.phoneNumber;
+  let phoneNumber = parsePhoneNumber(strArr);
   console.log("Phone number from the URL is : " + phoneNumber);
+  var phoneNumberSend;
 
-  var phoneNumberSend = phoneUtil.parse(phoneNumber, 'CA');
-  console.log(phoneUtil.format(phoneNumberSend, PNF.INTERNATIONAL));
+  for (var i = 0; i < strArr.length; i++){
+    phoneNumberSend = phoneUtil.parse(strArr[i], 'CA');
+    console.log(phoneUtil.format(phoneNumberSend, PNF.INTERNATIONAL));
+  }
   res.send(phoneNumberSend);
 });
 
@@ -68,5 +74,4 @@ app.post(postUri, function(req, res) {
 app.listen(3000, function () {
   console.log('Example app listening on port 3000!');
 });
-
 
